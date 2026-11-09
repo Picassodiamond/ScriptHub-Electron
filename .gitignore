@@ -1,0 +1,12 @@
+node_modules
+dist
+*.tsbuildinfo
+.vite
+out
+.env
+.env.*
+.DS_Store
+Thumbs.db
+coverage
+.vitest-cache
+runtime

@@ -1,0 +1,40 @@
+/* History page: filter rail + main column, status chips, sortable headers, keyboard focus. */
+.hist-layout { display: grid; grid-template-columns: minmax(180px, 210px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.hist-rail { position: sticky; top: 0; display: flex; flex-direction: column; gap: 14px; }
+.hist-rail .side-form { padding: 0; }
+.hist-clean { border-top: 1px solid var(--line-2); padding-top: 12px; }
+.hist-main { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 900px) { .hist-layout { grid-template-columns: 1fr; } .hist-rail { position: static; } }
+
+.hist-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip { height: 24px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: 999px; background: none; color: var(--muted); font: 550 12px var(--font); cursor: pointer; }
+.chip:hover { color: var(--text); }
+.chip.is-on { border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 1px var(--accent) inset; }
+.chip.st { border-color: transparent; }
+.chip.st:not(.is-on) { opacity: .75; }
+.hist-bulk { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+
+.th-sort { font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; }
+.th-sort:hover { color: var(--text); }
+.hist-check { width: 28px; }
+.hist-table tr.is-focus { outline: 1px solid var(--accent); outline-offset: -1px; }
+.hist-table tr.is-selected { background: var(--accent-soft, var(--hover)); }
+.hist-by { margin-top: 1px; }
+.hist-keys { margin-right: 10px; }
+
+/* A run id is one token (RUN-20261110-001): never break it over lines, and keep the table inside its column. */
+.hist-table td:nth-child(2) a { white-space: nowrap; }
+.hist-table th, .hist-table td { padding-left: 8px; padding-right: 8px; }
+.hist-table .hist-check { width: 28px; padding-left: 10px; padding-right: 0; }
+/* Narrower than the full layout (the side panel takes 330px of the window): the filters become one wrapping row above the table. */
+@media (max-width: 1500px) {
+  .hist-layout { grid-template-columns: minmax(0, 1fr); }
+  .hist-rail { position: static; gap: 8px; }
+  .hist-rail > .side-form:first-child { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; }
+  .hist-rail > .side-form:first-child > .field { flex: 1 1 150px; min-width: 0; max-width: 240px; margin: 0; }
+  .hist-rail > .side-form:first-child > .field:first-child { flex-basis: 280px; max-width: 360px; }
+  .hist-rail > .side-form:first-child > .btn-row { flex: 0 0 auto; margin: 0; }
+  .hist-clean { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 16px; }
+  .hist-clean .side-label { flex-basis: 100%; }
+  .hist-clean .help { flex: 1 1 260px; margin: 0 !important; }
+}

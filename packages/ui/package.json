@@ -1,0 +1,1 @@
+{"name":"@scripthub/ui","version":"0.1.0","private":true,"type":"module","dependencies":{"@preact/signals":"^2.11.4","monaco-editor":"^0.57.0","preact":"^11.2.0"},"devDependencies":{"@preact/preset-vite":"^2.10.6","@testing-library/preact":"^3.2.6","jsdom":"^29.1.1","vite":"^5.4.21"}}

@@ -1,0 +1,13 @@
+/** Importing this file registers every page kind. Each folder registers exactly one kind. */
+import './home'
+import './folder'
+import './script'
+import './run'
+import './history'
+import './settings'
+import './sequences'
+import './sequence'
+import './sequence-run'
+import './project-open'
+import './new-script'
+import './library'

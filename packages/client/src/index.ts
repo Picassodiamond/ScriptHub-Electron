@@ -1,0 +1,5 @@
+export { ApiError, makeClient, type Client, type Transport, type EventName, type Events, type CallName } from '@scripthub/protocol'
+export * from './window.js'
+export * from './mock.js'
+export * from './demo.js'
+export * from './demoRich.js'

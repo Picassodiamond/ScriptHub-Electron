@@ -1,0 +1,37 @@
+# Packaging: npm run dist  (builds the UI and the main process first, then runs electron-builder)
+appId: org.sstn.scripthub
+productName: ScriptHub
+copyright: ScriptHub
+electronVersion: 45.2.3   # keep equal to the electron version installed in node_modules
+directories:
+  output: ../../dist
+  buildResources: assets
+files:
+  - dist/**/*
+  - package.json
+extraMetadata:
+  main: dist/main.cjs
+extraResources:
+  - { from: ../../packages/ui/dist, to: ui }
+  - { from: ../../samples, to: samples }
+  - { from: assets, to: assets }
+asar: true
+win:
+  target:
+    - { target: nsis, arch: [x64] }
+    - { target: portable, arch: [x64] }
+  icon: assets/scripthub.ico
+nsis:
+  artifactName: ScriptHub-Setup-${version}.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+linux:
+  target: [AppImage]
+  icon: assets/scripthub.png
+mac:
+  target: [dmg]
+  icon: assets/scripthub.png
+portable:
+  artifactName: ScriptHub-${version}-portable.${ext}

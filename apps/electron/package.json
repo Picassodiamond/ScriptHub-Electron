@@ -1,0 +1,18 @@
+{
+  "name": "@scripthub/electron",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main.cjs",
+  "description": "ScriptHub desktop app",
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.21.5"
+  },
+  "scripts": {
+    "dev": "npm run dev --prefix ../..",
+    "build": "npm run build --prefix ../.."
+  },
+  "author": "Dhiraj Bajracharya",
+  "license": "MIT"
+}

@@ -1,0 +1,38 @@
+/* Script page additions (everything else comes from workbench.css, the old class names). */
+.script-page { padding: 12px 16px 0; min-height: 0; }
+.script-page .split-main { min-width: 0; }
+.script-page .doc-panel { position: relative; min-height: 120px; }
+.script-page .doc-panel .code-editor { position: absolute; inset: 0; }
+.script-page .doc-msg { display: flex; align-items: center; gap: 12px; justify-content: space-between; margin: 0; border-radius: 0; border-left: 0; border-right: 0; }
+.script-page .doc-bar .restore-form { display: inline-flex; align-items: center; gap: 2px; }
+.script-page .dirty-dot.is-on { display: inline-block; color: var(--accent); }
+.script-page .doc-tab .tab-name { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.script-page .split-side > .side-tabs .tab { border: 0; background: none; font: inherit; cursor: pointer; }
+.script-page .values-bar .input { width: auto; }
+.script-page .pe-table { width: 100%; }
+.script-page .pe-edit .err-list { margin: 6px 0 8px; padding-left: 18px; }
+.script-page .pe-actions .error-text { font-weight: 700; padding: 0 4px; cursor: help; }
+.script-page .preset-box .btn-row { display: flex; gap: 6px; }
+.script-page .side-bar { position: sticky; bottom: 0; background: var(--bg); padding: 10px 0; }
+
+/* Versions dialog */
+.versions-dialog { width: min(1100px, 96vw); max-height: 86vh; }
+.versions-grid { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 14px; min-height: 280px; }
+.versions-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--r); overflow: auto; max-height: 60vh; }
+.versions-list li { padding: 7px 10px; cursor: pointer; border-bottom: 1px solid var(--line); }
+.versions-list li:hover { background: var(--hover); }
+.versions-list li.is-active { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.versions-diff { min-width: 0; }
+.versions-note { margin-bottom: 6px; }
+.diff { border: 1px solid var(--line); border-radius: var(--r); max-height: 60vh; overflow: auto; font: 12px/1.55 var(--mono); background: var(--code-bg); }
+.diff-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) 38px minmax(0, 1fr); }
+.diff-row code { white-space: pre; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; background: none; border: 0; color: var(--code-text); font: inherit; }
+.diff-n { color: var(--faint); text-align: right; padding: 0 6px; user-select: none; }
+.diff-del .diff-l, .diff-change .diff-l { background: var(--bad-soft); }
+.diff-add .diff-r, .diff-change .diff-r { background: var(--ok-soft, var(--accent-soft)); }
+.diff-del .diff-n:first-child, .diff-change .diff-n:first-child { color: var(--bad); }
+.diff-row .diff-r { border-left: 1px solid var(--line); }
+
+/* New script page */
+.new-script-page { max-width: 760px; margin: 0 auto; }
+.new-script-page .field-error { margin-top: 4px; }

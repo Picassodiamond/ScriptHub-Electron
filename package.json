@@ -1,0 +1,52 @@
+{
+  "name": "scripthub-electron",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:ui": "vite --config packages/ui/vite.config.ts",
+    "build:ui": "vite build --config packages/ui/vite.config.ts",
+    "build:electron": "node scripts/build-electron.mjs",
+    "build": "npm run build:ui && npm run build:electron",
+    "dist": "npm run build && electron-builder --projectDir apps/electron --config electron-builder.yml",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "vitest run",
+    "test:ui": "vitest run --config packages/ui/vitest.config.ts",
+    "typecheck": "tsc -p packages/engine --noEmit && tsc -p packages/ui --noEmit && tsc -p packages/client --noEmit && tsc -p apps/electron --noEmit",
+    "pack": "npm run build && electron-builder --projectDir apps/electron --config electron-builder.yml --win dir",
+    "e2e": "npm run build && vitest run --config apps/electron/e2e/vitest.config.ts",
+    "e2e:run": "vitest run --config apps/electron/e2e/vitest.config.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "playwright-core": "^1.65.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "description": "ScriptHub: discover, configure, run and monitor Python/Bash/batch scripts locally or over SSH. Electron desktop app with a TypeScript engine.",
+  "license": "MIT",
+  "author": "Dhiraj Bajracharya",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picassodiamond/ScriptHub-Electron.git"
+  },
+  "homepage": "https://github.com/Picassodiamond/ScriptHub-Electron#readme",
+  "bugs": {
+    "url": "https://github.com/Picassodiamond/ScriptHub-Electron/issues"
+  },
+  "keywords": [
+    "electron",
+    "scripts",
+    "automation",
+    "ssh",
+    "admin-tools",
+    "typescript"
+  ]
+}

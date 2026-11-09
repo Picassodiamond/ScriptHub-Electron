@@ -1,0 +1,64 @@
+/* Settings panel. Uses the workbench tokens only (both themes); class names are prefixed st- / settings- to stay local. */
+.settings-page { max-width: 1120px; }
+.settings-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.settings-head h1 { font-size: 18px; margin: 0; font-weight: 650; }
+.settings-head .searchbox { flex: 1; min-width: 180px; max-width: 380px; }
+.settings-head .settings-tools { display: flex; gap: 6px; margin-left: auto; }
+
+.settings-layout { display: grid; grid-template-columns: 188px minmax(0, 1fr); gap: 22px; align-items: start; }
+.settings-nav { position: sticky; top: 0; display: grid; gap: 1px; align-self: start; }
+.settings-nav button {
+  display: flex; align-items: center; gap: 9px; padding: 6px 10px; border: 0; border-radius: 5px; background: none;
+  color: var(--text-2); font: 13px var(--font); text-align: left; cursor: pointer;
+}
+.settings-nav button:hover { background: var(--hover); color: var(--text); }
+.settings-nav button.is-active { background: var(--accent-soft); color: var(--text); }
+.settings-nav .nav-flag { margin-left: auto; display: inline-flex; gap: 4px; align-items: center; }
+.settings-nav .dot-bad { width: 7px; height: 7px; border-radius: 50%; background: var(--bad); }
+.settings-nav .help { margin: 8px 10px 0; }
+
+.settings-body { min-width: 0; display: grid; gap: 16px; }
+.settings-body > .panel { margin: 0; scroll-margin-top: 8px; }
+.settings-empty { padding: 28px 0; text-align: center; }
+
+/* fields that differ from the saved value */
+.field.is-changed > .field-label::after { content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 7px; border-radius: 50%; background: var(--accent); vertical-align: middle; }
+.field .field-error { margin-top: -1px; }
+.field .st-unit { color: var(--muted); font-size: 12px; margin-left: 6px; }
+.st-numrow { display: flex; align-items: center; }
+.st-numrow .input { max-width: 180px; }
+
+/* key / value row editor (interpreters, environment) */
+.rowlist { display: grid; gap: 6px; }
+.rl-row { display: grid; grid-template-columns: minmax(80px, 150px) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.rl-row.is-env { grid-template-columns: minmax(110px, 210px) minmax(0, 1fr) auto; }
+.rl-row.has-error .input { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad-soft); }
+.rl-err { grid-column: 1 / -1; font-size: 12px; color: var(--bad); font-weight: 550; margin-top: -2px; }
+.rl-head { display: grid; grid-template-columns: minmax(80px, 150px) minmax(0, 1fr) auto; gap: 8px; font-size: 11.5px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.rl-head.is-env { grid-template-columns: minmax(110px, 210px) minmax(0, 1fr) auto; }
+.rl-head span:last-child { width: 26px; }
+.rl-add { justify-self: start; margin-top: 2px; }
+
+.settings-warn { margin-bottom: 14px; }
+.settings-banner { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.settings-banner .spacer { flex: 1; }
+
+.st-host-result { font-size: 12.5px; margin-left: 10px; }
+.st-host-result.is-ok { color: var(--ok); }
+.st-host-result.is-bad { color: var(--bad); }
+.st-host-result.is-busy { color: var(--muted); }
+.st-data-path { word-break: break-all; }
+.st-about dt { color: var(--muted); font-size: 12.5px; }
+.st-about dd { margin: 0 0 10px; }
+.st-about { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0 14px; margin: 0; }
+
+.settings-actions { align-items: center; }
+.settings-actions .st-state { color: var(--muted); font-size: 12.5px; }
+.settings-actions .st-state.is-dirty { color: var(--warn); font-weight: 600; }
+
+@media (max-width: 820px) {
+  .settings-layout { grid-template-columns: minmax(0, 1fr); }
+  .settings-nav { position: static; grid-auto-flow: column; overflow-x: auto; }
+  .settings-nav .help { display: none; }
+  .rl-row, .rl-row.is-env, .rl-head, .rl-head.is-env { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+}

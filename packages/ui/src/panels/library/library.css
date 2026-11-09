@@ -1,0 +1,9 @@
+/* Library: category groups, favourites star, keyboard focus. */
+.lib-group td { padding: 0; background: var(--bg); }
+.lib-group .tree-summary { padding: 7px 10px; }
+.lib-cards-group { margin-bottom: 14px; }
+.lib-star { color: var(--faint); }
+.lib-star.is-on { color: var(--warn); }
+.lib-star.is-on svg { fill: currentColor; }
+.lib-table tr.is-focus, .sc.is-focus { outline: 1px solid var(--accent); outline-offset: -1px; }
+.lib-table .row-name { display: flex; align-items: center; gap: 8px; }
