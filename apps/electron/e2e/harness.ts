@@ -17,7 +17,7 @@ export const PY = process.platform === 'win32' ? 'python' : 'python3'
 
 const made: string[] = []
 export const tmp = (prefix: string) => {
-  const d = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), prefix)))
+  const d = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), prefix)))
   made.push(d)
   return d
 }

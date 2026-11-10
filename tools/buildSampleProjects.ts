@@ -104,7 +104,7 @@ export interface BuildSamplesOptions {
 
 /** Build every sample project; returns the written files. Throws when a sequence step would not run. */
 export async function buildSampleProjects(opts: BuildSamplesOptions): Promise<string[]> {
-  const home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'scripthub-samples-')))
+  const home = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'scripthub-samples-')))
   const data = path.join(home, 'data')
   fs.mkdirSync(data)
   // every sample type counts as a script, also where .bat is not one by default
