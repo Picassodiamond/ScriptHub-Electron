@@ -1,10 +1,12 @@
 /** The tab strip: click to activate, × or middle-click to close, drag to reorder, right-click for Close / Close others / Close all. */
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { Icon } from '../components/Icon'
-import { activateTab, activeKey, closeAll, closeOthers, closeTab, moveTab, tabs } from '../core'
+import { activateTab, activeUpperKey, childrenOf, closeAll, closeOthers, closeTab, moveTab, tabStatus, upperTabs } from '../core'
 
 export function TabStrip() {
-  const list = tabs.value
+  const list = upperTabs.value
+  const activeKey = { value: activeUpperKey.value }
+  const statuses = tabStatus.value
   const [drag, setDrag] = useState<{ from: number; over: number } | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; key: string } | null>(null)
   const strip = useRef<HTMLDivElement>(null)
@@ -43,6 +45,14 @@ export function TabStrip() {
         >
           <Icon name={t.icon} small />
           <span class="vtab-title">{t.title}</span>
+          {(() => {
+            const kids = childrenOf(t.key)
+            const running = kids.some((c) => statuses[c.key] === 'running' || statuses[c.key] === 'paused')
+            const failed = !running && kids.length > 0 && statuses[kids[kids.length - 1].key] === 'failed'
+            return running
+              ? <span class="vtab-dot is-running" title="A run is in progress" />
+              : failed ? <span class="vtab-dot is-failed" title="The latest run failed" /> : null
+          })()}
           <button type="button" class="vtab-x" aria-label={`Close ${t.title}`} title="Close" tabIndex={-1} onClick={(e) => { e.stopPropagation(); closeTab(t.key) }}>
             <Icon name="x" />
           </button>

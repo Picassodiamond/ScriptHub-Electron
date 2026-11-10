@@ -6,7 +6,7 @@
 import type { SequenceRunStatus } from '@scripthub/protocol'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { Icon } from '../../components/Icon'
-import { api, closeTab, confirm, errorText, openTab, registerPanel, shell, toast, useApi, useEvent, type PanelProps } from '../../core'
+import { api, closeTab, confirm, errorText, openTab, registerPanel, setTabStatus, shell, toast, useApi, useEvent, type PanelProps } from '../../core'
 import { Diagram, type DiagramHandle, type DiagramStep } from '../sequence/Diagram'
 import { statusClass } from '../sequence/RunsTable'
 import { StepConsole } from '../sequence/StepConsole'
@@ -100,6 +100,12 @@ function SequenceRunPage({ tab, active }: PanelProps) {
     if (!known) return void toast.error(`"${s.name}" is not in the open folder: open its folder to view it${s.path ? ` (${s.path}).` : '.'}`)
     openTab({ kind: 'script', id: s.script, title: known.name })
   }
+
+  const seqState = st ? (st.paused ? 'paused' : st.status) : null
+  useEffect(() => {
+    setTabStatus(tab.key, !seqState ? null : seqState === 'paused' ? 'paused' : seqState === 'running' || seqState === 'queued' ? 'running' : seqState === 'success' ? 'ok' : seqState === 'failed' || seqState === 'timed_out' ? 'failed' : 'other')
+  }, [tab.key, seqState])
+  useEffect(() => () => setTabStatus(tab.key, null), [tab.key])
 
   if (data.error && !st) return <div class="page"><div class="flash flash-error"><span>{data.error}</span></div></div>
   if (!st) return <div class="page"><p class="muted">Loading…</p></div>

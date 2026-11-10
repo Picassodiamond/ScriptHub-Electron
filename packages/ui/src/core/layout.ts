@@ -16,6 +16,12 @@ export const sideView = signal<SideView>((['explorer', 'sequences', 'runs'] as c
 export const side2On = signal(readStore('sr.side2') !== '0')
 export const bottomOn = signal(readStore('sr.bottom') === '1')
 export const bottomH = signal(num('sr.bottomH', 240, 80, 900))
+/** How a run tab (lower tab) is shown next to its script or sequence: full width, side by side, or stacked. */
+export type RunView = 'full' | 'side' | 'stack'
+export const RUN_VIEWS: RunView[] = ['full', 'side', 'stack']
+export const runView = signal<RunView>(RUN_VIEWS.find((v) => v === readStore('sr.runView')) ?? 'full')
+/** Share of the area (percent) the script or sequence keeps while a run is shown beside or under it. */
+export const runSplit = signal(num('sr.runSplit', 50, 20, 80))
 /** Set by the shell: true when the native menu replaces the HTML menu bar. */
 export const nativeMenu = signal(false)
 
@@ -54,6 +60,10 @@ export function initLayout(): () => void {
     }),
     effect(() => {
       writeStore('sr.sideView', sideView.value)
+    }),
+    effect(() => {
+      writeStore('sr.runView', runView.value)
+      writeStore('sr.runSplit', String(Math.round(runSplit.value)))
     }),
     effect(() => {
       root.style.setProperty('--mb-h', nativeMenu.value ? '0px' : '30px')

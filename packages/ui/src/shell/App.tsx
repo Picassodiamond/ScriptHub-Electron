@@ -8,6 +8,7 @@ import { EditorArea } from './EditorArea'
 import { MenuBar } from './MenuBar'
 import { ConfirmDialog, HelpSheet, Toasts } from './Overlays'
 import { Palette } from './Palette'
+import { RunStrip } from './RunStrip'
 import { SidePanel } from './SidePanel'
 import { StatusBar } from './StatusBar'
 import { TabStrip } from './TabStrip'
@@ -29,6 +30,7 @@ export function App() {
       <SidePanel />
       <main class="main" id="main">
         <TabStrip />
+        <RunStrip />
         <EditorArea />
         <BottomPanel />
       </main>

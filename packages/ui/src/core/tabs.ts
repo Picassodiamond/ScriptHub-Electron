@@ -14,6 +14,8 @@ export interface Tab {
   title: string
   icon: string
   params: Record<string, any>
+  /** Key of the upper tab this one belongs to. Set for run tabs: they are the temporary lower tabs of their script or sequence. */
+  owner?: string
 }
 
 export interface OpenSpec {
@@ -22,7 +24,14 @@ export interface OpenSpec {
   title?: string
   icon?: string
   params?: Record<string, any>
+  /** Force the owning upper tab (otherwise a run finds it from `params.scriptId` / `params.sequence` or the active page). */
+  owner?: string
 }
+
+/** Kinds that are shown as lower tabs of another tab instead of in the upper strip. */
+export const CHILD_KINDS: ReadonlySet<PanelKind> = new Set<PanelKind>(['run', 'sequence-run'])
+/** At most this many lower (run) tabs per upper tab; opening one more closes the oldest that is not shown. */
+export const MAX_CHILDREN = 8
 
 export const KIND_META: Record<PanelKind, { title: string; icon: string; single?: boolean }> = {
   home: { title: 'Home', icon: 'home', single: true },
@@ -45,8 +54,30 @@ export const activeTab = computed(() => tabs.value.find((t) => t.key === activeK
 /** Which workspace (open folder, or 'files') the tab list belongs to. */
 export const workspaceKey = signal('none')
 
+export const upperTabs = computed(() => tabs.value.filter((t) => !t.owner))
+/** The upper tab of what is shown: the active tab itself, or the owner of the active run tab. */
+export const activeUpperKey = computed(() => {
+  const t = activeTab.value
+  return t ? t.owner ?? t.key : null
+})
+export const childrenOf = (ownerKey: string | null | undefined): Tab[] => (ownerKey ? tabs.value.filter((t) => t.owner === ownerKey) : [])
+/** Status of run tabs (set by the run pages), shown as an icon on the lower tab and a dot on the upper one. */
+export type TabStatus = 'running' | 'ok' | 'failed' | 'paused' | 'other'
+export const tabStatus = signal<Record<string, TabStatus>>({})
+export function setTabStatus(key: string, status: TabStatus | null): void {
+  const cur = tabStatus.value
+  if ((cur[key] ?? null) === status) return
+  const next = { ...cur }
+  if (status) next[key] = status
+  else delete next[key]
+  tabStatus.value = next
+}
+
+/** What was shown last in each upper tab (its own page, or one of its run tabs): clicking the upper tab returns there. */
+const lastView = new Map<string, string>()
+
 const storageKey = (ws: string) => `scripthub.openTabs.${ws}`
-interface Saved { tabs: Array<Pick<Tab, 'kind' | 'id' | 'title' | 'icon' | 'params'>>; active: string | null }
+interface Saved { tabs: Array<Pick<Tab, 'kind' | 'id' | 'title' | 'icon' | 'params' | 'owner'>>; active: string | null }
 
 const keyOf = (kind: PanelKind, id?: string) => `${kind}:${id ?? ''}`
 
@@ -54,8 +85,32 @@ function makeTab(spec: OpenSpec): Tab {
   const meta = KIND_META[spec.kind]
   return {
     key: keyOf(spec.kind, meta.single ? undefined : spec.id), kind: spec.kind, id: meta.single ? undefined : spec.id,
-    title: spec.title || meta.title, icon: spec.icon || meta.icon, params: spec.params ?? {},
+    title: spec.title || meta.title, icon: spec.icon || meta.icon, params: spec.params ?? {}, owner: spec.owner,
   }
+}
+
+/** Which upper tab a new run tab belongs to: its script's or sequence's tab (opened in the background when needed), else the page in front. */
+function resolveOwner(spec: OpenSpec): string | undefined {
+  if (spec.owner) return spec.owner
+  const has = (key: string) => tabs.value.some((x) => x.key === key && !x.owner)
+  const front = activeUpperKey.value ?? undefined
+  if (spec.kind === 'run') {
+    const sid = spec.params?.scriptId
+    if (typeof sid === 'string' && sid) {
+      const key = keyOf('script', sid)
+      if (!has(key)) openTab({ kind: 'script', id: sid }, { background: true })
+      return key
+    }
+  } else if (spec.kind === 'sequence-run') {
+    const slug = spec.params?.sequence
+    if (typeof slug === 'string' && slug && has(keyOf('sequence', slug))) return keyOf('sequence', slug)
+  }
+  return front ?? (has('history:') ? 'history:' : undefined)
+}
+
+const viewOf = (key: string): string => {
+  const v = lastView.get(key)
+  return v && tabs.value.some((t) => t.key === v && (t.key === key || t.owner === key)) ? v : key
 }
 
 /** Open a tab (or activate the existing one; new params replace the old ones). */
@@ -64,10 +119,36 @@ export function openTab(spec: OpenSpec, opts: { background?: boolean } = {}): Ta
   const i = tabs.value.findIndex((x) => x.key === t.key)
   if (i >= 0) {
     const old = tabs.value[i]
-    const merged: Tab = { ...old, title: spec.title || old.title, params: spec.params ? { ...old.params, ...spec.params } : old.params }
-    if (merged.title !== old.title || merged.params !== old.params) tabs.value = tabs.value.map((x, j) => (j === i ? merged : x))
+    const params = spec.params ? { ...old.params, ...spec.params } : old.params
+    let owner = old.owner
+    // a run learns its sequence after it opened (the page asks the engine): move it under that sequence's tab if it is open
+    if (old.kind === 'sequence-run' && spec.params?.sequence) {
+      const o = resolveOwner({ ...spec, kind: old.kind })
+      if (o && o !== old.key && tabs.value.some((x) => x.key === o && !x.owner)) owner = o
+    }
+    const merged: Tab = { ...old, title: spec.title || old.title, params, owner }
+    if (merged.title !== old.title || merged.params !== old.params || merged.owner !== old.owner) tabs.value = tabs.value.map((x, j) => (j === i ? merged : x))
     if (!opts.background) activeKey.value = t.key
     return merged
+  }
+  if (CHILD_KINDS.has(spec.kind)) {
+    const owner = resolveOwner(spec)
+    if (owner) {
+      const child: Tab = { ...t, owner }
+      const count = tabs.value.filter((x) => x.owner === owner).length + 1
+      const list = tabs.value.slice()
+      // right after the owner's last run tab
+      const last = list.map((x) => x.key === owner || x.owner === owner).lastIndexOf(true)
+      list.splice(last >= 0 ? last + 1 : list.length, 0, child)
+      tabs.value = list
+      // keep the strip short: drop the oldest run tabs that are not in front
+      for (let n = count; n > MAX_CHILDREN; n--) {
+        const old = tabs.value.find((x) => x.owner === owner && x.key !== child.key && x.key !== activeKey.value)
+        if (old) forceCloseTab(old.key)
+      }
+      if (!opts.background || !activeKey.value) activeKey.value = child.key
+      return child
+    }
   }
   // a new tab opens next to the active one
   const at = tabs.value.findIndex((x) => x.key === activeKey.value)
@@ -78,9 +159,17 @@ export function openTab(spec: OpenSpec, opts: { background?: boolean } = {}): Ta
   return t
 }
 
-export function activateTab(key: string): void {
-  if (tabs.value.some((t) => t.key === key)) activeKey.value = key
+/** Show a tab. An upper tab comes back to what was last shown in it (its page or one of its run tabs) unless `exact`. */
+export function activateTab(key: string, opts: { exact?: boolean } = {}): void {
+  const t = tabs.value.find((x) => x.key === key)
+  if (t) activeKey.value = t.owner || opts.exact ? key : viewOf(key)
 }
+
+effect(() => {
+  const k = activeKey.value
+  const t = k ? tabs.peek().find((x) => x.key === k) : null
+  if (t) lastView.set(t.owner ?? t.key, t.key)
+})
 
 // ------------------------------------------------------------ close guards ---
 /** Return true to let the tab close, false to keep it (a panel may ask the user first). */
@@ -128,9 +217,21 @@ export function forceCloseTab(key: string): void {
   const list = tabs.value
   const i = list.findIndex((t) => t.key === key)
   if (i < 0) return
-  const rest = list.filter((t) => t.key !== key)
+  const gone = list[i]
+  // closing an upper tab closes its run tabs with it (the runs stay in History)
+  const rest = list.filter((t) => t.key !== key && t.owner !== key)
+  const was = activeKey.value
   tabs.value = rest
-  if (activeKey.value === key) activeKey.value = (rest[i] ?? rest[i - 1] ?? null)?.key ?? null
+  lastView.delete(key)
+  if (was && !rest.some((t) => t.key === was)) {
+    if (gone.owner && rest.some((t) => t.key === gone.owner)) {
+      const sib = rest.filter((t) => t.owner === gone.owner)
+      activeKey.value = (sib[sib.length - 1] ?? rest.find((t) => t.key === gone.owner))!.key
+    } else {
+      const near = list.slice(i + 1).find((t) => !t.owner && rest.includes(t)) ?? [...list.slice(0, i)].reverse().find((t) => !t.owner && rest.includes(t))
+      activeKey.value = near ? viewOf(near.key) : null
+    }
+  }
 }
 
 /**
@@ -160,7 +261,7 @@ async function closeMany(keys: string[], keep: string | null): Promise<void> {
   const plain = keys.filter((k) => !hasGuard(k))
   if (plain.length) {
     const set = new Set(plain)
-    tabs.value = tabs.value.filter((t) => !set.has(t.key))
+    tabs.value = tabs.value.filter((t) => !set.has(t.key) && !(t.owner && set.has(t.owner)))
   }
   for (const k of keys.filter(hasGuard)) await closeTab(k)
   if (keep && tabs.value.some((t) => t.key === keep)) activeKey.value = keep
@@ -168,19 +269,22 @@ async function closeMany(keys: string[], keep: string | null): Promise<void> {
 }
 
 export function closeOthers(key: string): Promise<void> {
-  return closeMany(tabs.value.filter((t) => t.key !== key).map((t) => t.key), key)
+  const keep = tabs.value.find((t) => t.key === key)?.owner ?? key
+  return closeMany(tabs.value.filter((t) => !t.owner && t.key !== keep).map((t) => t.key), keep)
 }
 
 export function closeAll(): Promise<void> {
-  return closeMany(tabs.value.map((t) => t.key), null)
+  return closeMany(tabs.value.filter((t) => !t.owner).map((t) => t.key), null)
 }
 
+/** Reorder the upper tabs (indexes into `upperTabs`); each one keeps its run tabs right after it. */
 export function moveTab(from: number, to: number): void {
-  const list = tabs.value.slice()
-  if (from < 0 || from >= list.length || to < 0 || to >= list.length || from === to) return
-  const [t] = list.splice(from, 1)
-  list.splice(to, 0, t)
-  tabs.value = list
+  const up = upperTabs.value.slice()
+  if (from < 0 || from >= up.length || to < 0 || to >= up.length || from === to) return
+  const [t] = up.splice(from, 1)
+  up.splice(to, 0, t)
+  const all = tabs.value
+  tabs.value = up.flatMap((u) => [u, ...all.filter((c) => c.owner === u.key)])
 }
 
 export function renameTab(key: string, title: string): void {
@@ -188,10 +292,10 @@ export function renameTab(key: string, title: string): void {
 }
 
 export function nextTab(step: 1 | -1): void {
-  const list = tabs.value
+  const list = upperTabs.value
   if (!list.length) return
-  const i = list.findIndex((t) => t.key === activeKey.value)
-  activeKey.value = list[(i + step + list.length) % list.length].key
+  const i = list.findIndex((t) => t.key === activeUpperKey.value)
+  activateTab(list[(i + step + list.length) % list.length].key)
 }
 
 /** Close tabs whose script or sequence no longer exists (after a scan finished). `known` = ids by kind. */
@@ -200,7 +304,7 @@ export function pruneTabs(known: { script?: Set<string>; sequence?: Set<string> 
     if (t.kind === 'script' && known.script && t.id && !known.script.has(t.id)) return false
     if (t.kind === 'sequence' && known.sequence && t.id && !known.sequence.has(t.id)) return false
     return true
-  })
+  }).filter((t, _i, all) => !t.owner || all.some((o) => o.key === t.owner))
   if (keep.length !== tabs.value.length) {
     tabs.value = keep
     if (!keep.some((t) => t.key === activeKey.value)) activeKey.value = keep[0]?.key ?? null
@@ -213,11 +317,12 @@ export function pruneTabs(known: { script?: Set<string>; sequence?: Set<string> 
  */
 export function loadWorkspaceTabs(ws: string): void {
   const saved = readJson<Saved | null>(storageKey(ws), null)
-  const list = (saved?.tabs ?? []).filter((t) => t && t.kind in KIND_META).map((t) => makeTab(t))
+  const made = (saved?.tabs ?? []).filter((t) => t && t.kind in KIND_META).map((t) => makeTab(t))
+  const list = made.filter((t) => !t.owner || made.some((o) => o.key === t.owner && !o.owner))
   batch(() => {
     workspaceKey.value = ws
     tabs.value = list
-    activeKey.value = list.some((t) => t.key === saved?.active) ? saved!.active : list[0]?.key ?? null
+    activeKey.value = list.some((t) => t.key === saved?.active) ? saved!.active : list.find((t) => !t.owner)?.key ?? null
     if (!list.length) openTab({ kind: 'home' })
   })
 }
@@ -229,6 +334,6 @@ export function persistTabs(): () => void {
     const list = tabs.value
     const active = activeKey.value
     if (ws === 'none') return
-    writeJson(storageKey(ws), { tabs: list.map(({ kind, id, title, icon, params }) => ({ kind, id, title, icon, params })), active } satisfies Saved)
+    writeJson(storageKey(ws), { tabs: list.map(({ kind, id, title, icon, params, owner }) => ({ kind, id, title, icon, params, owner })), active } satisfies Saved)
   })
 }

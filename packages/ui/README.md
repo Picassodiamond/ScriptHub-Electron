@@ -135,3 +135,14 @@ implement `EditorAdapter` by opening the file in VS Code's editor.
   same commands. Drop a folder on the window to open it.
 - Keyboard: `g o/l/q/h/s/n/f` chords, `r` / `Ctrl+Enter` run, `Ctrl+K` palette (`>` = commands), `Ctrl+B` side panel,
   `Ctrl+J` bottom panel, `Ctrl+W` close tab, `F10` menu bar, `?` help sheet. Plain keys are ignored while typing.
+
+### Upper and lower tabs
+
+The tab model has two layers. The upper strip holds pages (scripts, sequences, Home, Library, History, Settings ...). Run tabs
+(`run`, `sequence-run`; see `CHILD_KINDS` in `core/tabs.ts`) are temporary lower tabs of the upper tab they belong to
+(`Tab.owner`): `openTab` finds the owner from `params.scriptId` / `params.sequence`, else the page in front, so panels keep
+calling `openTab({ kind: 'run', ... })` unchanged. A page shows its lower strip (`shell/RunStrip.tsx`) only while it has runs;
+the first lower entry is the page itself. At most `MAX_CHILDREN` run tabs per page; closing the page closes its runs (they stay in
+History). Clicking an upper tab returns to what was shown last in it. Run pages report their state with `setTabStatus` (icon on the
+lower tab, dot on the upper one). The run view (`runView`: full / side / stack, button `#run-view`, divider `runSplit`) is a
+global user setting; in side / stack the owner's panel stays mounted next to the run (`shell/EditorArea.tsx`).

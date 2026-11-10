@@ -105,6 +105,7 @@ describe('9. build and run a sequence in the diagram', () => {
 
   it('Pause between steps holds the next step back until Resume', async () => {
     await l.page.locator('.vtab', { hasText: /Pipeline/ }).first().click()
+    await l.page.locator('.rtab-page').click() // the upper tab returns to the run page it showed last: back to the diagram
     await waitKind(l, 'sequence')
     const play = active(l).locator('#seq-play')
     await play.click() // Run again (the first step takes ~3 s)

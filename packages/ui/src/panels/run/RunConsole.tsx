@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { Icon } from '../../components/Icon'
 import {
-  api, closeTab, confirm, errorText, hostInfo, openTab, readStore, saveFile, toast, useCommand, writeStore, type PanelProps,
+  api, closeTab, confirm, errorText, hostInfo, openTab, readStore, saveFile, setTabStatus, toast, useCommand, writeStore, type PanelProps,
 } from '../../core'
 import { DebugBar, Inspector, debugLabel, canDo, type DebugAction } from './Debug'
 import { copyText, fmtDuration, shortTime } from './format'
@@ -236,6 +236,14 @@ export function RunConsole({ tab, active }: PanelProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [active])
   useCommand('run.run', () => void rerun(), active)
+
+  // the lower tab shows this run's state
+  const tabState = status?.status ?? run.status ?? null
+  useEffect(() => {
+    const paused = isDebug && isActive && debug?.state === 'paused'
+    setTabStatus(tab.key, !tabState ? null : paused ? 'paused' : tabState === 'running' || tabState === 'queued' ? 'running' : tabState === 'success' ? 'ok' : tabState === 'failed' || tabState === 'timed_out' ? 'failed' : 'other')
+  }, [tab.key, tabState, isActive, debug?.state])
+  useEffect(() => () => setTabStatus(tab.key, null), [tab.key])
 
   // --------------------------------------------------------------- render --
   if (!runId) return <div class="page"><p class="empty">No run selected.</p></div>

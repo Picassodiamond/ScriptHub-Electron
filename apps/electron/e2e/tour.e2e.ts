@@ -46,11 +46,13 @@ async function snapAll(theme: 'light' | 'dark', prefix: string) {
   await waitKind(l, 'sequence')
   await sleep(300)
   await shot('sequence')
-  await l.page.locator('.vtab', { hasText: /^run 00\d/ }).first().click()
+  // a script's tab comes back to the run it showed last: its console is the lower tab
+  await l.page.locator('.vtab', { hasText: 'Succeed, fail or take a while' }).first().click()
+  await l.page.locator('.rtab', { hasText: /^run 00\d/ }).first().click()
   await waitKind(l, 'run')
   await sleep(300)
   await shot('run-console')
-  await l.page.locator('.vtab', { hasText: 'Succeed, fail or take a while' }).first().click()
+  await l.page.locator('.rtab-page').click()
   await waitKind(l, 'script')
   for (const v of ['overview', 'parameters', 'run'] as const) {
     await rightTab(l, v)
