@@ -8,7 +8,7 @@ const made: string[] = []
 
 /** A throwaway data folder; tests never touch a real runtime/. */
 export function tmpDir(prefix = 'sh-'): string {
-  const d = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), prefix)))
+  const d = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), prefix)))
   made.push(d)
   return d
 }

@@ -56,7 +56,7 @@ afterEach(async () => {
 })
 
 export function makeCase(opts: CaseOptions = {}) {
-  const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'sr-test-')))
+  const tmp = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'sr-test-')))
   const scripts = path.join(tmp, 'scripts dir') // a space on purpose
   fs.mkdirSync(scripts)
   const dirs = dataDirs(path.join(tmp, 'runtime'))

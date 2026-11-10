@@ -85,8 +85,8 @@ describe('new script', () => {
     if (languages(config.load()).some(([e]) => e === '.bat')) {
       await ns.create(form({ language: '.bat', filename: 'win' }))
       expect(fs.readFileSync(path.join(a, 'win.bat'), 'latin1')).toContain('\r\n')
+      expect(fs.readFileSync(path.join(a, 'win.bat'), 'latin1').replace(/\r\n/g, '').includes('\n')).toBe(false)
     }
-    expect(fs.readFileSync(path.join(a, 'win.bat'), 'latin1').replace(/\r\n/g, '').includes('\n')).toBe(false)
   })
 
   it('prefills the place of the script "+" was clicked next to, and suggests existing folders', async () => {
